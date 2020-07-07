@@ -1,0 +1,91 @@
+#include<bits/stdc++.h>
+using namespace std;
+typedef long long ll;typedef double db;
+typedef pair<int, int> pii;typedef pair<ll, ll> pll;
+typedef pair<int,ll> pil;typedef pair<ll,int> pli;
+#define Fi first
+#define Se second
+#define _Out(a)	cerr<<#a<<" = "<<(a)<<endl
+const int INF = 0x3f3f3f3f, MAXN =2e5 + 50;
+const ll LINF = 0x3f3f3f3f3f3f3f3f, MOD = 1004535809;
+const db Pi = acos(-1), EPS = 1e-6;
+struct Edge
+{
+	int from,to,cost,nxt;
+
+}E[MAXN*2];
+int head[MAXN],cntE;
+void addE(int a,int b,int c=1)
+{
+	E[cntE]={a,b,c,head[a]};
+	head[a]=cntE++;
+}
+
+int depth[MAXN], grand[MAXN][20],n;
+void LCA_Dfs(int u, int fa,int dep)
+{
+    depth[u] = dep; grand[u][0] = fa;
+    for (int ei = head[u]; ei != -1; ei = E[ei].nxt)if(E[ei].to != fa)LCA_Dfs(E[ei].to, u, dep + 1);
+}
+inline void LCA_Init()
+{
+    LCA_Dfs(1, -1, 0);
+    for (int i = 1; i <= 18; i++)for (int j = 1; j <= n; j++)grand[j][i] = (grand[j][i - 1] == -1 ? -1 : grand[grand[j][i - 1]][i - 1]);
+}
+inline int LCA(int a, int b)
+{
+    if (depth[a] > depth[b])swap(a, b);
+    for (int i = 18; i >= 0; --i) if (grand[b][i] != -1 && depth[grand[b][i]] >= depth[a])b = grand[b][i];
+    if (a == b)return a;
+    for (int i = 18; i >= 0; --i)if (grand[b][i] != grand[a][i])a = grand[a][i], b = grand[b][i];
+    return grand[a][0];
+}
+
+int val[MAXN];
+vector<pair<pii,int>>Q[MAXN];
+int ans[MAXN];
+int QAQ[MAXN];
+void dfs(int u,int fa,int dep)
+{
+	int las=QAQ[val[u]];
+	QAQ[val[u]]=dep;
+	for(auto x:Q[u])
+	{
+		ans[x.second]|=(QAQ[x.first.second]>=x.first.first);
+	}
+	for(int ei=head[u];ei!=-1;ei=E[ei].nxt)
+	{
+		int v=E[ei].to;if(v==fa)continue;
+		dfs(v,u,dep+1);
+	}
+	QAQ[val[u]]=las;
+}
+void work()
+{
+	int m;
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;i++)
+	{
+		scanf("%d",val+i);head[i]=-1;
+	}
+	for(int i=1;i<n;i++)
+	{
+		int u,v;scanf("%d%d",&u,&v);
+		addE(u,v);addE(v,u);
+	}
+	LCA_Init();memset(QAQ,-1,sizeof(QAQ));
+	for(int i=1;i<=m;i++)
+	{
+		int a,b,c;scanf("%d%d%d",&a,&b,&c);
+		int lac=LCA(a,b);
+		Q[a].push_back({{depth[lac]+1,c},i});
+		Q[b].push_back({{depth[lac]+1,c},i});
+	}
+	dfs(1,-1,1);
+	for(int i=1;i<=m;i++)
+		printf("%d",ans[i]);
+}
+int main()
+{
+		work();
+}
