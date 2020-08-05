@@ -1,0 +1,25 @@
+//邻接矩阵建图
+bool dfs(int u){
+    for(int v=1;v<=N;v++)
+        if(map[u][v]&&!vis[v]){
+            vis[v]=true;
+            if( match[v] ==-1 ||dfs(match[v])) {
+            match[v]=u;
+            return true;
+        }
+    }
+    return false;
+}
+
+//主函数部分：
+int sum = 0;//匹配数
+memset(match,-1,sizeof(match));
+
+//Y部结点匹配的X部结点的编号
+
+for (int i=1; i<=N; i++){
+    memset(vis,0,sizeof(vis));
+    if (dfs(i)) sum++;
+}
+
+

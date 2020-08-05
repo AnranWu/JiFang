@@ -1,0 +1,123 @@
+#include<bits/stdc++.h>
+
+#define rep(i, a, b) for(int i=(int)a;i<=(int)b;i++)
+#define pb push_back
+using namespace std;
+typedef long long ll;
+const int maxn = 505;
+const int inf = 1e16;
+int n, m;
+
+struct KM {
+
+    int n;
+
+    ll mat[maxn][maxn];                //边权
+    int match_x[maxn], match_y[maxn];    //左边的点对应匹配的右边点和右边的点对应匹配的左边点
+    ll lx[maxn], ly[maxn];              //左边和右边顶标的值
+    ll slack[maxn];                    //松弛数组
+    bool vis_x[maxn], vis_y[maxn];       //访问标记
+
+    int head, tail;
+    int Q[maxn], pre[maxn];              //队列，当前的增广路
+
+    bool ck(int u) {
+        vis_y[u] = true;
+        if (match_y[u]) {
+            if (!vis_x[match_y[u]]) {
+                Q[++tail] = match_y[u];
+                vis_x[match_y[u]] = true;
+            }
+            return false;
+        }
+        while (u) {
+            swap(u, match_x[match_y[u] = pre[u]]);
+        }
+        return true;
+    }
+
+    void bfs(int st) {
+        rep(i, 1, n) {
+            vis_x[i] = vis_y[i] = false;
+            slack[i] = inf;
+        }
+
+        head = tail = 1;
+        Q[1] = st;
+        vis_x[st] = true;
+
+        while (1) {
+            while (head <= tail) {
+                int u = Q[head++];
+                rep(i, 1, n) {
+                    ll d = lx[u] + ly[i] - mat[u][i];
+                    //visb=true说明已搜索，无需更新slack和pre，也是保证pre的正确性
+                    if (!vis_y[i] && d <= slack[i]) {
+                        slack[i] = d;
+                        pre[i] = u;
+                        if (d == 0) {
+                            if (ck(i))
+                                return;
+                        }
+                    }
+                }
+            }
+            ll delta = inf;
+
+            rep(i, 1, n) {
+                if (!vis_y[i] && slack[i]) {
+                    delta = min(delta, slack[i]);
+                }
+            }
+            rep(i, 1, n) {
+                if (vis_x[i]) lx[i] -= delta;
+                if (vis_y[i]) ly[i] += delta;
+                else slack[i] -= delta;
+            }
+
+            head = 1, tail = 0;
+            rep(i, 1, n) {
+                if (!vis_y[i] && !slack[i] && ck(i)) return;
+            }
+        }
+    }
+
+    void Deal() {
+        rep(i, 1, n) {
+            match_x[i] = match_y[i] = ly[i] = 0;
+        }
+        rep(i, 1, n) {
+            lx[i] = 0;
+            rep(j, 1, n) {
+                lx[i] = max(lx[i], mat[i][j]);
+            }
+
+        }
+        rep(i, 1, n) bfs(i);
+    }
+} K;
+
+int main() {
+
+#ifdef LOCAL_JUDGE
+    freopen("in.txt", "r+", stdin);
+#endif
+    scanf("%d%d", &n, &m);
+
+    K.n = n;
+    rep(i, 1, n) rep(j, 1, n) K.mat[i][j] = -inf;
+    rep(i, 1, m) {
+        int x, y;
+        ll z;
+        scanf("%d%d%lld", &x, &y, &z);
+        K.mat[x][y] = max(K.mat[x][y], z);
+    }
+    K.Deal();
+    ll ans = 0;
+    rep(i, 1, n) ans += (ll) K.mat[i][K.match_x[i]];
+    cout << ans << endl;
+    rep(i, 1, n) {
+        printf("%d%c", K.match_y[i], i == n ? '\n' : ' ');
+    }
+    return 0;
+}

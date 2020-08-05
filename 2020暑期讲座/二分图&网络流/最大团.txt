@@ -1,0 +1,44 @@
+struct Maxclique {
+    int link[maxn][maxn], maxx[maxn], ans, n;
+    void init(int nn) {
+        n = nn;
+        memset(maxx,0,sizeof(maxx));
+        memset(link,0,sizeof(link));
+    }
+    //输入目前合法的最大团点数，哪些点可能连接，以及这个数组长度
+    void dfs(int sum, int v[], int len) {
+        ans = max(ans, sum);
+        int tv[maxn], tlen;
+        rep(i, 1, len) {
+            //剪枝，就算之后都是合法但仍小于答案
+            if (sum + len - i + 1 <= ans) break;
+            //如果当前和加上之后某个点的最大答案之后仍小于答案
+            if (sum + maxx[v[i]] <= ans) break;
+            tlen = 0;
+            rep(j, i + 1, len) {
+                if (link[v[i]][v[j]])
+                    tv[++tlen] = v[j];
+            }
+            
+      
+            dfs(sum + 1, tv, tlen);
+       }
+    }
+
+    inline void query() {
+        int p[maxn], len;
+        ans = maxx[n] = 1;
+        for (int i = n - 1; i >= 1; i--) {
+            len = 0;
+            for (int j = i + 1; j <= n; j++) {
+                if (link[i][j]) p[++len]=j;
+            }
+            int tmp = 1;
+            dfs(tmp, p, len);
+            maxx[i] = ans;
+        }
+    }
+} Cli;
+
+
+
